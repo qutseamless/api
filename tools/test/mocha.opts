@@ -1,0 +1,4 @@
+--reporter nyan
+--colors
+--compilers js:babel-core/register
+--require tools/test/setup

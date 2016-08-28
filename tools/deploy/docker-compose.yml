@@ -1,0 +1,15 @@
+version: '2'
+services:
+  api:
+    image: 172611308345.dkr.ecr.ap-southeast-2.amazonaws.com/seamless/api
+    build:
+      context: ../../
+      dockerfile: ./tools/deploy/Dockerfile
+    ports:
+      - "3000:3000"
+    links:
+     - mongo
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
