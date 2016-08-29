@@ -1,6 +1,7 @@
-##
-# Trigger a docker image build on docker hub
-##
+#!/bin/bash
+
+
+# trigger a docker image build on docker hub
 curl \
   -H "Content-Type: application/json" \
   --data '{"build": true}' \
