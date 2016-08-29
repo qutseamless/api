@@ -6,3 +6,5 @@ services:
 install:
   - npm i
 script: npm run mocha
+after_success:
+  - ./tools/deploy/trigger.sh

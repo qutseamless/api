@@ -4,6 +4,9 @@ run('npm', ['run', 'build'])
 .then(() =>
   run('docker-compose', [
     '-f', `${__dirname}/docker-compose.yml`,
-    'up', '-d', '--build',
+    'build',
   ])
+)
+.then(() =>
+  run('docker', ['push', 'seamless/api'])
 );

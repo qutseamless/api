@@ -9,12 +9,12 @@
   ],
   "scripts": {
     "start": "babel-node tools/dev",
-    "test": "watch 'npm run mocha' source",
+    "test": "watch 'npm run mocha:coverage' source",
     "docs": "watch 'npm run document' source",
     "deploy": "babel-node tools/deploy",
     "build": "babel-node tools/build ",
     "mocha": "babel-node tools/test",
-    "mocha:coverage": "nyc babel-node tools/test",
+    "mocha:coverage": "babel-node tools/test/coverage",
     "document": "babel-node tools/docs",
     "open:coverage": "npm run mocha:coverage && open docs/coverage/index.html",
     "open:api": "npm run document && open docs/api/index.html"
