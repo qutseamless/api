@@ -2,7 +2,7 @@
 import { agent } from 'supertest-as-promised';
 import mongoose from 'mongoose';
 
-import { app } from '../../../../app';
+import app from '../../../../app';
 
 describe('app:endpoints: data#del', () => {
   let server; let api;

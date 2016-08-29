@@ -2,15 +2,16 @@
 import { agent } from 'supertest-as-promised';
 import mongoose from 'mongoose';
 
-import { app } from '../../../../app';
+import app from '../../../../app';
 
 describe('app:endpoints: data#create', () => {
   let server; let api;
 
-  before(() => {
+  before(done => {
     server = app.listen(4000);
     api = agent(server);
-    return mongoose.connect('mongodb://127.0.0.1/test');
+    mongoose.connect('mongodb://localhost/test');
+    mongoose.connection.once('open', done);
   });
 
   it('should send 400 and message on no id', () =>
