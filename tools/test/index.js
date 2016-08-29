@@ -8,8 +8,7 @@ import { run, clean } from '../libs';
 /**
  * performs the task of: run nyc/mocha, cleans up test coverage files.
  */
-run('nyc', [
-  'mocha',
+run('mocha', [
   'source/**/spec.js',
   '--opts',
   `${__dirname}/mocha.opts`,
