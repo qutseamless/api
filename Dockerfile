@@ -3,9 +3,11 @@ FROM node:latest
 RUN mkdir -p /usr/app
 WORKDIR /usr/app
 
-ADD package.json .
+COPY package.json .
 RUN npm i --production
-ADD build .
+
+COPY source .
+RUN npm run build && rm -rf source && mv build .
 
 EXPOSE 3000
 
