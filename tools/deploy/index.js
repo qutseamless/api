@@ -2,8 +2,7 @@ import { run } from '../libs';
 
 run('docker', [
   'build',
-  '--name', 'qutseamless/api',
-  '--port', '3000:3000',
+  '-t', 'qutseamless/api',
   '-f', `${__dirname}/Dockerfile`, '.',
 ])
 .then(() => run('docker', ['push', 'qutseamless/api']));
