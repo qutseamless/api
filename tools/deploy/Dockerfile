@@ -1,13 +1,11 @@
 FROM node:latest
 
-RUN mkdir -p /usr/app
-WORKDIR /usr/app
+RUN mkdir -p /usr/api
+WORKDIR /usr/api
 
 COPY package.json .
 RUN npm i --production
-
-COPY source .
-RUN npm run build && rm -rf source && mv build .
+COPY build .
 
 EXPOSE 3000
 

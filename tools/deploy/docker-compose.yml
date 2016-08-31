@@ -1,8 +1,9 @@
 version: '2'
 services:
   api:
-    build: .
     image: qutseamless/api
+    build:
+      context: ../../
     ports:
       - "3000:3000"
     links:
