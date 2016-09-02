@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/qutseamless/api.svg?branch=master)](https://travis-ci.org/qutseamless/api)
+
 # Seamless Server
 this is the server application for Seamless.
 
