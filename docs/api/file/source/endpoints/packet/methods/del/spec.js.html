@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../../../../">
+  <title data-ice="title">source/endpoints/packet/methods/del/spec.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-endpoints">endpoints</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/packet</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-packet">packet</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/packet/methods/create</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-create">create</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/packet/methods/del</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-del">del</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/packet/methods/read</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-read">read</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/packet/methods/update</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-update">update</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/shipment</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-shipment">shipment</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/shipment/methods/create</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-create">create</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/shipment/methods/del</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-del">del</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/shipment/methods/read</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-read">read</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/shipment/methods/update</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-update">update</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/user</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-user">user</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/user/methods/create</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-create">create</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/user/methods/del</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-del">del</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/user/methods/read</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-read">read</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">endpoints/user/methods/update</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-update">update</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">models</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-Packet">Packet</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">source/endpoints/packet/methods/del/spec.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">/* eslint-disable import/no-extraneous-dependencies */
+import { agent } from &apos;supertest-as-promised&apos;;
+import mongoose from &apos;mongoose&apos;;
+
+import app from &apos;../../../../app&apos;;
+
+describe(&apos;app:endpoints: data#del&apos;, () =&gt; {
+  let server; let api;
+
+  before(() =&gt; {
+    server = app.listen(4000);
+    api = agent(server);
+    return mongoose.connect(&apos;mongodb://127.0.0.1/test&apos;);
+  });
+
+  it(&apos;should send 400 and message on no id&apos;, () =&gt;
+    api
+      .delete(&apos;/data&apos;)
+      .expect(400, &apos;Bad Request: id was not provided&apos;)
+  );
+
+  it(&apos;should send 400 and message on malformed id&apos;, () =&gt;
+    api
+      .delete(&apos;/data?id=abcd&apos;)
+      .expect(400, &apos;Bad Request: id was invalid&apos;)
+  );
+
+  it(&apos;should send 200 and message on packets deleted&apos;, () =&gt;
+    api
+      .delete(&apos;/data?id=1234&apos;)
+      .expect(200, &apos;Success: packet was deleted&apos;)
+  );
+
+  after(() =&gt; {
+    server.close();
+    return mongoose.connection.close();
+  });
+});
+
+/* eslint
+  no-unused-expressions: 0
+  no-undef: 0
+*/
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

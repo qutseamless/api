@@ -1,8 +1,7 @@
 /**
- * @module manages the task of building the app. for extensibility it can also
- * accept a argument to specify build directory (used by the dev server daemon).
+ * @module manages the task of building the app.
  */
-import { clean, copy, run } from '../libs';
+const { clean, dir, copy, run } = require('../libs');
 
 
 /**
@@ -15,6 +14,7 @@ const directory = process.argv[2] || 'build';
  * performs tasks of: clean directory, copy static assets, rebuild modules.
  */
 clean(directory)
-  .then(() => copy('source/assets/**', directory, { srcBase: 'source' }))
-  .then(() => run('babel', ['source', '-q', '-d', directory]))
-  .catch(console.log);
+.then(() => dir('build'))
+// .then(() => copy('source/assets', directory))
+.then(() => run('babel', ['source', '-q', '-d', directory]))
+.catch(console.log);

@@ -1,23 +1,16 @@
 /**
- * @module runs a mocha test suite with nyc (previously istanbul api),
- * and performs a post cleanup.
+ * @module runs tests.
  */
-import { run, clean } from '../libs';
+const { run, clean } = require('../libs');
 
 
 /**
- * performs the task of: run nyc/mocha, cleans up test coverage files.
+ * clean up .nyc_output
  */
-run('mocha', [
-  'source/**/spec.js',
-  '--opts',
-  `${__dirname}/mocha.opts`,
-])
-.then(() => clean('.nyc_output'))
-.catch(console.log);
 
-/*
-eslint
-import/no-extraneous-dependencies: 0,
-no-shadow: 0,
-*/
+
+/**
+ *  run ava with nyc and watch.
+ */
+run('watch', ['npm run test:once', 'source'])
+.catch(console.log);

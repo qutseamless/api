@@ -1,12 +1,9 @@
-import 'babel-polyfill';
-
-
 import parser from 'koa-bodyparser';
 import logger from 'koa-logger';
+import cors from 'koa-cors';
 import Koa from 'koa';
 
-import endpoints from './endpoints';
-
+import api from './api';
 
 /**
  * @type {Koa} app the pure koa instance
@@ -14,12 +11,21 @@ import endpoints from './endpoints';
 const app = new Koa();
 
 
-/** setup core middleware */
-app
+if (process.env.NODE_ENV === 'development') { // enable logging
+  app
   .use(logger())
-  .use(parser())
-  .use(endpoints.routes())
-  .use(endpoints.allowedMethods());
+}
+
+const options = {
+  origin: 'http://localhost:8080',
+};
+
+
+app
+.use(parser())
+.use(cors(options))
+.use(api.routes())
+.use(api.allowedMethods());
 
 
 export default app;

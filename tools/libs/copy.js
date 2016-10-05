@@ -1,24 +1,14 @@
-/**
- * @module promisifies the npm copy module, and parses all the default args.
- */
-import cp from 'copy';
-
+const run = require('./run');
 
 /**
- * coppies glob paths to new directory.
+ * copy a glob to a new dir.
  *
- * @param  {String|Array} globs the glob patters to copy from.
- * @param  {String} newDir the directory to copy the files to.
- * @param  {type} options the copy modules options arg (see npm copy).
- * @returns {Promise} returns promise of task completion.
+ * @param  {String} glob the glob pattern to copy from.
+ * @param  {String} dir the directory to copy the files to.
+ * @returns {Promise} returns promise resolving when glob is copied.
  */
-export function copy(globs, newDir, options) {
-  return new Promise(resolve => cp(globs, newDir, options, resolve));
+function copy(glob, dir) {
+  return run('cp', ['-r', glob, dir])
 }
 
-export default copy;
-
-/*
-eslint
-import/no-extraneous-dependencies: 0,
-*/
+module.exports = copy;

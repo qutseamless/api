@@ -1,23 +1,13 @@
-/**
- * @module a glob deletion modules. accepts a list of arguments and feeds them
- * into an array before running the array with the del module, and returning
- * a promise
- */
-import del from 'del';
+const run = require('./run');
 
 
 /**
  * deletes all directories/files matching the glob patterns.
- * @param  {Array<String>} ...args an array of glob patterns.
+ * @param  {String} glob to match files to deletexs.
  * @returns {Promise} returns a promise of task completion
  */
-export function clean(...globs) {
-  return del(globs);
+function clean(glob) {
+  return run('rm', ['-rf', glob]);
 }
 
-export default clean;
-
-/*
-eslint
-import/no-extraneous-dependencies: 0,
-*/
+module.exports = clean;

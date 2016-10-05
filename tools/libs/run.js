@@ -4,7 +4,7 @@
  *  - you have the option to set stdio to pipe.
  *  - it returns a promise.
  */
-import { spawn } from 'child_process';
+const { spawn } = require('child_process');
 
 
 /**
@@ -13,12 +13,14 @@ import { spawn } from 'child_process';
  * @param  {Array} args - an array of arguments to feed into the command.
  * @returns {Promise} returns a promise resolved on task completion
  */
-export function run(command, args) {
-  return new Promise(resolve => {
-    const task = spawn(command, args, { stdio: 'inherit' });
-    task.on('close', resolve);
-  }
+function run(command, args) {
+  return new Promise(
+    resolve => {
+      spawn(command, args, { stdio: 'inherit' })
+        .on('exit', resolve);
+    }
   );
 }
 
-export default run;
+
+module.exports = run;

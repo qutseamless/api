@@ -1,7 +1,10 @@
 import mongoose from 'mongoose';
 import app from './app';
 
-/** assign es6 promises to mongoose promises */
+
+/**
+ * @type {Promise} mongoose.Promise using native promises.
+ */
 mongoose.Promise = Promise;
 
 
@@ -12,7 +15,7 @@ mongoose.Promise = Promise;
  */
 const port = process.argv[2] || 3000;
 const db = process.argv[3] || 'localhost';
-const name = process.argv[4] || 'test';
+const name = process.argv[4] || 'seamless-test';
 
 
 /**
@@ -22,7 +25,7 @@ let server;
 
 
 /**
- * starts the koa instance
+ * start koa
  */
 function start() {
   console.log(`api is connected to port: ${port}.`);
@@ -31,7 +34,7 @@ function start() {
 
 
 /**
- * gracefully stops the koa instance (if started).
+ * gracefully stop koa
  */
 function stop() {
   if (server) {
@@ -42,15 +45,15 @@ function stop() {
 
 
 /**
- * register stop on SIGINT
+ * SIGINT runs stop
  */
 process.on('SIGINT', stop);
 
 
 /**
- * connect to db, then start app.
+ * - connect to db
+ * - start app.
  */
 mongoose.connection.on('error', console.error);
 mongoose.connection.once('open', start);
-
 mongoose.connect(`mongodb://${db}/${name}`);

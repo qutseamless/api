@@ -1,0 +1,2118 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/business/index.js",
+    "memberof": null,
+    "longname": "source/api/business/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import router from 'koa-router';\nimport verify from '../oauth/verify';\nimport {\n  del,\n} from './methods';\n\n\n/**\n * @type {Router} user router\n */\nconst business = router();\n\n\nbusiness\n.delete('/', verify, del);\n\n\n/**\n * @type {Router} user.\n */\nexport default business;\n"
+  },
+  {
+    "__docId__": 1,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "business",
+    "memberof": "source/api/business/index.js",
+    "longname": "source/api/business/index.js~business",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/business/index.js",
+    "importStyle": "business",
+    "description": "",
+    "lineNumber": 11,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Router"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 2,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/business/methods/del/index.js",
+    "memberof": null,
+    "longname": "source/api/business/methods/del/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Business, User, Shipment, Packet } from '../../../../models';\n\n\nexport async function del(ctx) {\n  const { businessId } = ctx.state.user;\n  try {\n    const business = await Business.findById(businessId);\n\n    await Promise.all( // delete packets\n      business.shipments.map(async shipmentId => {\n        const shipment = await Shipment.findById(shipmentId);\n        return Promise.all(\n          shipment.packets.map(packetId => Packet.findByIdAndRemove(packetId))\n        );\n      })\n    );\n\n    await Promise.all( // delete shipments\n      business.shipments.map(shipmentId => Shipment.findByIdAndRemove(shipmentId))\n    )\n\n    await Promise.all( // delete users\n      business.employees.map(userId => User.findByIdAndRemove(userId))\n    );\n\n    await business.remove();\n\n    ctx.status = 200;\n    ctx.body = {};\n    return;\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = { error: \"no user\" };\n    return;\n  }\n}\n\n\nexport default del;\n"
+  },
+  {
+    "__docId__": 3,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "del",
+    "memberof": "source/api/business/methods/del/index.js",
+    "longname": "source/api/business/methods/del/index.js~del",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/business/methods/del/index.js",
+    "importStyle": "{del}",
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "params": [
+      {
+        "name": "ctx",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 4,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/business/methods/index.js",
+    "memberof": null,
+    "longname": "source/api/business/methods/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "export * from './del';\n"
+  },
+  {
+    "__docId__": 5,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/index.js",
+    "memberof": null,
+    "longname": "source/api/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "/**\n * @type {Router} router of the server app.\n */\nimport router from 'koa-router';\n\nimport register from './register';\nimport sign from './oauth/sign';\nimport business from './business';\nimport shipment from './shipment';\nimport packet from './packet';\nimport user from './user';\n\n/**\n * @type {Router} endpoints the router for all endpoints\n */\nconst endpoints = router({ prefix: '/api' });\n\n\nendpoints\n.post('/register', register)\n.post('/oauth', sign)\n\n.use('/business', business.routes())\n.use('/business', business.allowedMethods())\n.use('/shipment', shipment.routes())\n.use('/shipment', shipment.allowedMethods())\n.use('/packet', packet.routes())\n.use('/packet', packet.allowedMethods())\n.use('/user', user.routes())\n.use('/user', user.allowedMethods());\n\n\nexport default endpoints;\n"
+  },
+  {
+    "__docId__": 6,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "endpoints",
+    "memberof": "source/api/index.js",
+    "longname": "source/api/index.js~endpoints",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/index.js",
+    "importStyle": "endpoints",
+    "description": "",
+    "lineNumber": 16,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Router"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 7,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/oauth/sign/index.js",
+    "memberof": null,
+    "longname": "source/api/oauth/sign/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import jwt from 'jsonwebtoken';\nimport { User } from '../../../models';\n\nexport async function sign(ctx) {\n  const { email, password } = ctx.request.body;\n\n  if (!email || typeof email  !== 'string') {\n    ctx.status = 400;\n    ctx.body = { error: 'invalid email' };\n    return;\n  }\n\n  if (!password || typeof password !== 'string') {\n    ctx.status = 400;\n    ctx.body = { error: 'invalid password' };\n    return;\n  }\n\n  try {\n    const unauthedUser = await User.findOne({ email }, { password: true });\n\n    if (unauthedUser) {\n      const authenticated = unauthedUser.authenticate(password);\n      if (authenticated) {\n        const expiresIn = 86400;\n        const authedUser = await User.findOne({ email });\n        const token = jwt.sign(authedUser, 'shhhhh', { expiresIn });\n        ctx.status = 200;\n        ctx.body = { token, expiresIn };\n        return;\n      }\n\n      ctx.status = 401;\n      ctx.body = { error: 'invalid credentials' };\n      return;\n    }\n  } catch (error) {\n    ctx.status = 401;\n    ctx.body = { error: 'invalid credentials' };\n    return;\n  }\n}\n\nexport default sign;\n"
+  },
+  {
+    "__docId__": 8,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "sign",
+    "memberof": "source/api/oauth/sign/index.js",
+    "longname": "source/api/oauth/sign/index.js~sign",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/oauth/sign/index.js",
+    "importStyle": "{sign}",
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "params": [
+      {
+        "name": "ctx",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 9,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/oauth/sign/spec.js",
+    "memberof": null,
+    "longname": "source/api/oauth/sign/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../../app';\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = server(app.listen()))\n\n\ntest('no email: should return 400, error: \"invalid email\"', async t => {\n  const body = {};\n  const res = await t.context\n                    .post('/api/oauth')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid email');\n});\n\n\ntest.todo('invalid email expression: should return 400, error: \"invalid email\"');\n\n\ntest('typeof email !== \"string\": should return 400, error: \"invalid email\"', async t => {\n  const body = { email: {} };\n  const res = await t.context\n                    .post('/api/oauth')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid email');\n});\n\n\ntest('no password: should return 400, error: \"invalid password\"', async t => {\n  const body = { email: 'user@sign.test' };\n  const res = await t.context\n                    .post('/api/oauth')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid password');\n});\n\n\ntest.todo('invalid password expression: should return 400, error: \"invalid password\"');\n\n\ntest('typeof password !== \"string\": should return 400, error: \"invalid password\"', async t => {\n  const body = { email: 'user@sign.test', password: {} };\n  const res = await t.context\n                    .post('/api/oauth')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid password');\n});\n\n\ntest('successful sign: should return 200, with token response', async t => {\n  const user = {\n    name: 'bob',\n    email: 'user@sign.test',\n    business: 'oauth sign inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n  // TODO get token from oauth\n\n  const { token } = setup;\n\n  await t.context\n        .del('/api/user')\n        .send({ token });\n\n  await t.context\n        .del('/api/business')\n        .send({ token });\n});\n\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 10,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/oauth/verify/index.js",
+    "memberof": null,
+    "longname": "source/api/oauth/verify/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import jwt from 'jsonwebtoken';\n\nexport async function verify(ctx, next) {\n  const { request, headers, query } = ctx;\n\n  const token = request.body.token || query.token || headers['x-access-token'];\n  if (token) {\n    try {\n      ctx.state.user = await new Promise(resolve => {\n        jwt.verify(token, 'shhhhh', async (error, data) => {\n          if (error) {\n            throw error;\n          }\n          resolve(data._doc);\n        });\n      });\n    } catch (error) {\n      ctx.status = 401;\n      ctx.body = { error: 'invalid token' };\n      return;\n    }\n\n    await next();\n    return;\n  } else {\n    ctx.status = 401;\n    ctx.body = { error: 'invalid token' };\n    return;\n  }\n}\n\nexport default verify;\n"
+  },
+  {
+    "__docId__": 11,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "verify",
+    "memberof": "source/api/oauth/verify/index.js",
+    "longname": "source/api/oauth/verify/index.js~verify",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/oauth/verify/index.js",
+    "importStyle": "{verify}",
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "params": [
+      {
+        "name": "ctx",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "next",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 12,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/packet/index.js",
+    "memberof": null,
+    "longname": "source/api/packet/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import router from 'koa-router';\nimport {\n  create,\n  read,\n  update,\n  del,\n} from './methods';\n\n\n/**\n * @type {Router} packet router\n */\nconst packet = router();\n\n\npacket\n.post('/', create)\n.get('/', read)\n.put('/', update)\n.delete('/', del);\n\n\n/**\n * @type {Router} packet.\n */\nexport default packet;\n"
+  },
+  {
+    "__docId__": 13,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "packet",
+    "memberof": "source/api/packet/index.js",
+    "longname": "source/api/packet/index.js~packet",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/packet/index.js",
+    "importStyle": "packet",
+    "description": "",
+    "lineNumber": 13,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Router"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 14,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/packet/methods/create/index.js",
+    "memberof": null,
+    "longname": "source/api/packet/methods/create/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Packet } from '../../../../models';\n\n/**\n * validates the incoming shipment packet, and saves it.\n *\n * @param {Object} ctx the current serving context.\n */\nexport const create = async ctx => {\n  const { id, timestamp } = ctx.request.body;\n\n  if (!id) {\n    ctx.status = 400;\n    ctx.body = 'Bad Request: id was not provided';\n    return;\n  }\n\n  if (isNaN(id)) {\n    ctx.status = 400;\n    ctx.body = 'Bad Request: id was invalid';\n    return;\n  }\n\n  if (!timestamp) {\n    ctx.status = 400;\n    ctx.body = 'Bad Request: timestamp was not provided';\n    return;\n  }\n\n  if (isNaN(timestamp) || timestamp < 0 || timestamp > Date.now()) {\n    ctx.status = 400;\n    ctx.body = 'Bad Request: timestamp was invalid';\n    return;\n  }\n\n  try {\n    await new Packet({ id, timestamp }).save();\n    ctx.status = 200;\n    ctx.body = 'Success: packet was recorded';\n    return;\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = 'Server Error: Database did not save the packet';\n    throw error;\n  }\n};\n\nexport default create;\n"
+  },
+  {
+    "__docId__": 15,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "create",
+    "memberof": "source/api/packet/methods/create/index.js",
+    "longname": "source/api/packet/methods/create/index.js~create",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/packet/methods/create/index.js",
+    "importStyle": "{create}",
+    "description": "validates the incoming shipment packet, and saves it.",
+    "lineNumber": 8,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ctx",
+        "description": "the current serving context."
+      }
+    ],
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 16,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/packet/methods/del/index.js",
+    "memberof": null,
+    "longname": "source/api/packet/methods/del/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Packet } from '../../../../models';\n\nexport const del = async ctx => {\n  const { id } = ctx.query;\n\n  if (!id) {\n    ctx.status = 400;\n    ctx.body = 'Bad Request: id was not provided';\n    return;\n  }\n\n  if (isNaN(id)) {\n    ctx.status = 400;\n    ctx.body = 'Bad Request: id was invalid';\n    return;\n  }\n\n\n  try {\n    await Packet.remove({ id });\n    ctx.status = 200;\n    ctx.body = 'Success: packet was deleted';\n    return;\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = 'Server Error: Database did not save the packet';\n    throw error;\n  }\n};\n\nexport default del;\n"
+  },
+  {
+    "__docId__": 17,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "del",
+    "memberof": "source/api/packet/methods/del/index.js",
+    "longname": "source/api/packet/methods/del/index.js~del",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/packet/methods/del/index.js",
+    "importStyle": "{del}",
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 18,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/packet/methods/index.js",
+    "memberof": null,
+    "longname": "source/api/packet/methods/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "export * from './create';\nexport * from './read';\nexport * from './update';\nexport * from './del';\n"
+  },
+  {
+    "__docId__": 19,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/packet/methods/read/index.js",
+    "memberof": null,
+    "longname": "source/api/packet/methods/read/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Packet } from '../../../../models';\n\nexport const read = async ctx => {\n  try {\n    ctx.status = 200;\n    ctx.body = await Packet.find();\n    return;\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = 'Server Error: Database did not retrieve the packet/s';\n    throw error;\n  }\n};\n\nexport default read;\n"
+  },
+  {
+    "__docId__": 20,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "read",
+    "memberof": "source/api/packet/methods/read/index.js",
+    "longname": "source/api/packet/methods/read/index.js~read",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/packet/methods/read/index.js",
+    "importStyle": "{read}",
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 21,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/packet/methods/update/index.js",
+    "memberof": null,
+    "longname": "source/api/packet/methods/update/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "export const update = ctx => {\n  ctx.body = 'route \"create\" is still under construction';\n  return;\n};\n\nexport default update;\n"
+  },
+  {
+    "__docId__": 22,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "update",
+    "memberof": "source/api/packet/methods/update/index.js",
+    "longname": "source/api/packet/methods/update/index.js~update",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/packet/methods/update/index.js",
+    "importStyle": "{update}",
+    "description": null,
+    "lineNumber": 1,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 23,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/register/index.js",
+    "memberof": null,
+    "longname": "source/api/register/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import jwt from 'jsonwebtoken';\nimport {\n  Business,\n  User,\n} from '../../models';\n\n\n/**\n * creates a user.\n * @param {Object} ctx the current serving context.\n */\nexport async function register (ctx) {\n  const {\n    name, email, businessName, address, industry, password,\n  } = ctx.request.body;\n\n\n  if (!name || name.length < 3 || typeof name !== 'string') {\n    ctx.status = 400;\n    ctx.body = { error: 'invalid name' };\n    return;\n  }\n  if (!email || typeof email !== 'string') { // TODO: test with email expression\n    ctx.status = 400;\n    ctx.body = { error: 'invalid email' };\n    return;\n  }\n  if (!businessName || businessName.length < 3 || typeof businessName !== 'string') {\n    ctx.status = 400;\n    ctx.body = { error: 'invalid businessName' };\n    return;\n  }\n  if (!address || address.length < 3 || typeof address !== 'string') {\n    ctx.status = 400;\n    ctx.body = { error: 'invalid address' };\n    return;\n  }\n  if (!password || typeof password !== 'string') { // TODO: test with password expression\n    ctx.status = 400;\n    ctx.body = { error: 'invalid password' };\n    return;\n  }\n\n\n  const user = new User({\n    name, email, password,\n  });\n  const business = new Business({\n    name: businessName, address,\n  });\n  if (industry) {\n    business.industry = industry;\n  }\n  user.businessId = business._id;\n  business.employees.push(user._id);\n\n\n  try {\n    await user.save();\n  } catch (error) {\n    console.log(error);\n    ctx.status = 500;\n    ctx.body = { error: 'invalid user' };\n    return;\n  }\n  try {\n    await business.save();\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = { error: 'invalid business' };\n    return;\n  }\n\n\n  const expiresIn = 86400;\n  const token = await jwt.sign(user, 'shhhhh', { expiresIn });\n  ctx.status = 201;\n  ctx.body = { token, expiresIn };\n}\n\n\nexport default register;\n"
+  },
+  {
+    "__docId__": 24,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "register",
+    "memberof": "source/api/register/index.js",
+    "longname": "source/api/register/index.js~register",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/register/index.js",
+    "importStyle": "{register}",
+    "description": "creates a user.",
+    "lineNumber": 12,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ctx",
+        "description": "the current serving context."
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 25,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/register/spec.js",
+    "memberof": null,
+    "longname": "source/api/register/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../app';\n\n\n/**\n * @type {SuperTest} ctx of the tests. (a server wrapped with supertest)\n */\nconst ctx = server(app.listen());\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = ctx)\n\n\ntest('no name: should return 400, error: \"invalid name\"', async t => {\n  const res = await t.context\n                    .post('/api/register');\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid name');\n});\n\n\ntest('name.length < 3: should return 400, error: \"invalid name\"', async t => {\n  const body = { name: 'ab' };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid name');\n});\n\n\ntest('typeof name !== \"string\": should return 400, error: \"invalid name\"', async t => {\n  const body = { name: {} };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid name');\n});\n\n\ntest('no email: should return 400, error: \"invalid email\"', async t => {\n  const body = { name: 'bob' };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid email');\n});\n\n\ntest.todo('invalid email expression: should return 400, error: \"invalid email\"');\n\n\ntest('typeof email !== \"string\": should return 400, error: \"invalid email\"', async t => {\n  const body = { name: 'bob', email: {} };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid email');\n});\n\n\ntest('no businessName: should return 400, error: \"invalid businessName\"', async t => {\n  const body = { name: 'bob', email: 'user@register.test' };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid businessName');\n});\n\n\ntest('businessName.length < 3: should return 400, error: \"invalid businessName\"', async t => {\n  const body = { name: 'bob', email: 'user@register.test', businessName: 'ab' };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid businessName');\n});\n\n\ntest('typeof businessName !== \"string\": should return 400, error: \"invalid businessName\"', async t => {\n  const body = { name: 'bob', email: 'user@register.test', businessName: {} };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid businessName');\n});\n\n\ntest('no address: should return 400, error: \"invalid address\"', async t => {\n  const body = { name: 'bob', email: 'user@register.test', businessName: 'register inc' };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid address');\n});\n\n\ntest('address.length < 3: should return 400, error: \"invalid address\"', async t => {\n  const body = { name: 'bob', email: 'user@register.test', businessName: 'register inc', address: 'ab' };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid address');\n});\n\n\ntest('typeof address !== \"string\": should return 400, error: \"invalid address\"', async t => {\n  const body = { name: 'bob', email: 'user@register.test', businessName: 'register inc', address: {} };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid address');\n});\n\n\ntest('no password: should return 400, error: \"invalid password\"', async t => {\n  const body = { name: 'bob', email: 'user@register.test', businessName: 'register inc', address: '123 abc st' };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid password');\n});\n\n\ntest.todo('invalid password expression: should return 400, error: \"invalid password\"');\n\n\ntest('typeof password !== \"string\": should return 400, error: \"invalid password\"', async t => {\n  const body = {\n    name: 'bob',\n    email: 'user@register.test',\n    businessName: 'register inc',\n    address: '123 abc st',\n    password: {},\n  };\n  const res = await t.context\n                    .post('/api/register')\n                    .send(body);\n\n  t.is(res.status, 400);\n  t.is(res.body.error, 'invalid password');\n});\n\ntest('successful register: should return 200, with token', async t => {\n  const user = {\n    name: 'bob',\n    email: 'user@register.test',\n    businessName: 'register inc',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const test = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n  const { status, body: { token, expiresIn } } = test;\n\n  t.is(status, 201);\n  t.is(typeof token, 'string');\n  t.is(expiresIn, 86400);\n\n\n  await t.context\n        .del('/api/business')\n        .send({ token });\n});\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 26,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "ctx",
+    "memberof": "source/api/register/spec.js",
+    "longname": "source/api/register/spec.js~ctx",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/api/register/spec.js",
+    "importStyle": null,
+    "description": "",
+    "lineNumber": 11,
+    "type": {
+      "nullable": null,
+      "types": [
+        "SuperTest"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 27,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/index.js",
+    "memberof": null,
+    "longname": "source/api/shipment/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import router from 'koa-router';\nimport verify from '../oauth/verify';\nimport {\n  create,\n  read,\n  update,\n  del,\n} from './methods';\n\n\n/**\n * @type {Router} shipment router\n */\nconst shipment = router();\n\n\nshipment\n.post('/', verify,  create)\n.get('/', verify, read)\n.put('/', verify, update)\n.delete('/', verify, del);\n\n\n/**\n * @type {Router} shipment.\n */\nexport default shipment;\n"
+  },
+  {
+    "__docId__": 28,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "shipment",
+    "memberof": "source/api/shipment/index.js",
+    "longname": "source/api/shipment/index.js~shipment",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/shipment/index.js",
+    "importStyle": "shipment",
+    "description": "",
+    "lineNumber": 14,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Router"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 29,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/methods/create/index.js",
+    "memberof": null,
+    "longname": "source/api/shipment/methods/create/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Business, Shipment } from '../../../../models';\n\n/**\n * creates a shipment for the business of the user\n * @param {Object} ctx the current serving context.\n */\nexport async function create(ctx) {\n  const { businessId } = ctx.state.user;\n\n  const shipment = new Shipment({ businessId });\n\n  try {\n    const business = await Business.findById(businessId);\n    business.shipments.push(shipment._id);\n    await business.save();\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = { error: 'invalid business' };\n    return;\n  }\n\n\n  try {\n    await shipment.save();\n    ctx.status = 201;\n    ctx.body = shipment;\n    return;\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = { error: 'invalid shipment' };\n    return;\n  }\n}\n\nexport default create;\n"
+  },
+  {
+    "__docId__": 30,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "create",
+    "memberof": "source/api/shipment/methods/create/index.js",
+    "longname": "source/api/shipment/methods/create/index.js~create",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/shipment/methods/create/index.js",
+    "importStyle": "{create}",
+    "description": "creates a shipment for the business of the user",
+    "lineNumber": 7,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ctx",
+        "description": "the current serving context."
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 31,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/methods/create/spec.js",
+    "memberof": null,
+    "longname": "source/api/shipment/methods/create/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../../../app';\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = server(app.listen()));\n\n\ntest('successful create: should return 200, with shipment', async t => {\n  const user = {\n    name: 'bob',\n    email: 'shipment@create.test',\n    businessName: 'shipment create inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n  const test = await t.context\n                    .post('/api/shipment')\n                    .set(headers);\n\n  t.is(test.status, 201);\n\n\n  await t.context\n        .del('/api/business')\n        .send({ token })\n        .set(headers);\n});\n\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 32,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/methods/del/index.js",
+    "memberof": null,
+    "longname": "source/api/shipment/methods/del/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Business, Shipment, Packet } from '../../../../models';\n\n/**\n * deletes a shipment for the business of the user\n * @param {Object} ctx the current serving context.\n */\nexport async function del(ctx){\n    const { businessId } = ctx.state.user;\n    const { _id } = ctx.query;\n\n  try {\n    const shipment = await Shipment.findById(_id);\n    await Promise.all(\n      shipment.packets.map(packetId => Packet.findByIdAndRemove(packetId))\n    );\n    await shipment.remove();\n  } catch (error) {\n    ctx.status = 400;\n    ctx.body = error;\n    return;\n  }\n\n  try {\n    const business = await Business.findById(businessId);\n    business.shipments.pull(_id);\n    await business.save();\n    ctx.body = {};\n    ctx.status = 200;\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = { error: 'invalid business' };\n    return;\n  }\n}\n"
+  },
+  {
+    "__docId__": 33,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "del",
+    "memberof": "source/api/shipment/methods/del/index.js",
+    "longname": "source/api/shipment/methods/del/index.js~del",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/shipment/methods/del/index.js",
+    "importStyle": "{del}",
+    "description": "deletes a shipment for the business of the user",
+    "lineNumber": 7,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ctx",
+        "description": "the current serving context."
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 34,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/methods/del/spec.js",
+    "memberof": null,
+    "longname": "source/api/shipment/methods/del/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../../../app';\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = server(app.listen()));\n\n\ntest('successful delete: should return 200, with {}', async t => {\n  const user = {\n    name: 'bob',\n    email: 'shipment@delete.test',\n    businessName: 'shipment delete inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n\n  const setupTwo = await t.context\n                        .post('/api/shipment')\n                        .set(headers);\n\n  const { _id } = setupTwo.body;\n  const queries = { _id };\n  const test = await t.context\n                    .del('/api/shipment')\n                    .query(queries)\n                    .set(headers);\n\n  t.is(test.status, 200);\n  t.true(test.body instanceof Object);\n\n\n  await t.context\n        .del('/api/business')\n        .send({ token })\n        .set(headers);\n});\n\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 35,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/methods/index.js",
+    "memberof": null,
+    "longname": "source/api/shipment/methods/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "export * from './create';\nexport * from './read';\nexport * from './update';\nexport * from './del';\n"
+  },
+  {
+    "__docId__": 36,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/methods/read/index.js",
+    "memberof": null,
+    "longname": "source/api/shipment/methods/read/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Business, Shipment } from '../../../../models';\n\n\nexport async function read(ctx) {\n  const { businessId } = ctx.state.user;\n  const { _id } = ctx.query;\n\n  try {\n    let result;\n    if (_id) {\n      result = await Shipment.findById(_id);\n    } else {\n      const { shipments } = await Business.findById(businessId, 'shipments')\n                                          .populate('shipments')\n                                          .exec();\n      result = shipments;\n    }\n    ctx.body = result;\n    ctx.status = 200;\n  } catch (error) {\n    ctx.body = error;\n    ctx.status = 500;\n  }\n}\n"
+  },
+  {
+    "__docId__": 37,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "read",
+    "memberof": "source/api/shipment/methods/read/index.js",
+    "longname": "source/api/shipment/methods/read/index.js~read",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/shipment/methods/read/index.js",
+    "importStyle": "{read}",
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "params": [
+      {
+        "name": "ctx",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 38,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/methods/read/spec.js",
+    "memberof": null,
+    "longname": "source/api/shipment/methods/read/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../../../app';\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = server(app.listen()));\n\n\ntest('successful read one: should return 200, with shipment', async t => {\n  const user = {\n    name: 'bob',\n    email: 'shipment@read.test',\n    businessName: 'shipment read inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n  const setupTwo = await t.context\n                          .post('/api/shipment')\n                          .set(headers);\n\n\n  const { _id } = setupTwo.body;\n  const queries = { _id };\n  const test = await t.context\n                     .get('/api/shipment')\n                     .set(headers)\n                     .query(queries);\n\n  t.is(test.status, 200);\n  t.true(test.body instanceof Object);\n\n\n  await t.context\n        .del('/api/business')\n        .set(headers);\n});\n\n\ntest('successful read all: should return 200, with shipments', async t => {\n  const user = {\n    name: 'bob',\n    email: 'shipments@read.test',\n    businessName: 'shipments read inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n\n  await t.context\n         .post('/api/shipment')\n         .set(headers);\n\n\n  const test = await t.context\n                     .get('/api/shipment')\n                     .set(headers);\n\n  t.is(test.status, 200);\n  t.true(test.body instanceof Array);\n\n\n  await t.context\n        .del('/api/business')\n        .set(headers);\n});\n\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 39,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/shipment/methods/update/index.js",
+    "memberof": null,
+    "longname": "source/api/shipment/methods/update/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "export const update = ctx => {\n  ctx.body = 'route \"create\" is still under construction';\n  return;\n};\n\nexport default update;\n"
+  },
+  {
+    "__docId__": 40,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "update",
+    "memberof": "source/api/shipment/methods/update/index.js",
+    "longname": "source/api/shipment/methods/update/index.js~update",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/shipment/methods/update/index.js",
+    "importStyle": "{update}",
+    "description": null,
+    "lineNumber": 1,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 41,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/index.js",
+    "memberof": null,
+    "longname": "source/api/user/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import router from 'koa-router';\nimport verify from '../oauth/verify';\nimport {\n  me,\n  create,\n  read,\n  update,\n  del,\n} from './methods';\n\n\n/**\n * @type {Router} user router\n */\nconst user = router();\n\n\nuser\n.get('/me', verify, me)\n\n.post('/', verify, create)\n.get('/', verify, read)\n.put('/', verify, update)\n.delete('/', verify, del);\n\n\n/**\n * @type {Router} user.\n */\nexport default user;\n"
+  },
+  {
+    "__docId__": 42,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "user",
+    "memberof": "source/api/user/index.js",
+    "longname": "source/api/user/index.js~user",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/user/index.js",
+    "importStyle": "user",
+    "description": "",
+    "lineNumber": 15,
+    "type": {
+      "nullable": null,
+      "types": [
+        "Router"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 43,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/create/index.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/create/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Business, User } from '../../../../models';\n\n/**\n * creates a user.\n * @param {Object} ctx the current serving context.\n */\nexport async function create (ctx) {\n  const { businessId } = ctx.state.user;\n  const {\n    name, email, password,\n  } = ctx.request.body;\n\n  if (!name || name.length < 3 || typeof name !== 'string') {\n    ctx.status = 400;\n    ctx.body = { error: 'invalid name' };\n    return;\n  }\n\n  if (!email || typeof email !== 'string') { // TODO: test with email expression\n    ctx.status = 400;\n    ctx.body = { error: 'invalid email' };\n    return;\n  }\n\n  if (!password || typeof password !== 'string') { // TODO: test with password expression\n    ctx.status = 400;\n    ctx.body = { error: 'invalid password' };\n    return;\n  }\n\n  const user = new User({ name, email, businessId, password });\n\n  try {\n    const business = await Business.findById(businessId);\n    business.employees.push(user._id);\n    await business.save();\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = { error: 'invalid business' };\n    return;\n  }\n\n\n  try {\n    await user.save();\n    ctx.status = 200;\n    ctx.body = user;\n    return;\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = { error: 'invalid user' };\n    return;\n  }\n}\n\nexport default create;\n"
+  },
+  {
+    "__docId__": 44,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "create",
+    "memberof": "source/api/user/methods/create/index.js",
+    "longname": "source/api/user/methods/create/index.js~create",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/user/methods/create/index.js",
+    "importStyle": "{create}",
+    "description": "creates a user.",
+    "lineNumber": 7,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "ctx",
+        "description": "the current serving context."
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 45,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/create/spec.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/create/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../../../app';\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = server(app.listen()));\n\n\ntest('successful create: should return 200, with user', async t => {\n  const user = {\n    name: 'bob',\n    email: 'user@create.test',\n    businessName: 'user create inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n  const user2 = { name: 'bob', email: 'user2@create.test', password: 'Password2' };\n  const test = await t.context\n                    .post('/api/user')\n                    .set(headers)\n                    .send(user2);\n\n  t.is(test.status, 200);\n  t.is(test.body.name, user2.name);\n  t.is(test.body.email, user2.email);\n\n\n  await t.context\n        .del('/api/business')\n        .send({ token })\n        .set(headers);\n});\n\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 46,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/del/index.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/del/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Business, User } from '../../../../models';\n\n\nexport async function del(ctx) {\n  const { _id, businessId } = ctx.state.user;\n\n  try {\n    const business = await Business.findById(businessId);\n    business.employees.pull(_id);\n    if (business.employees.length > 0) {\n      await business.save();\n    } else {\n      await business.remove();\n    }\n  } catch (error) {\n    ctx.error = 500;\n    ctx.body = error;\n    return;\n  }\n  \n  try {\n    await User.findByIdAndRemove(_id);\n    ctx.status = 200;\n    ctx.body = {};\n    return;\n  } catch (error) {\n    ctx.error = 500;\n    ctx.body = error;\n    return;\n  }\n}\n\n\nexport default del;\n"
+  },
+  {
+    "__docId__": 47,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "del",
+    "memberof": "source/api/user/methods/del/index.js",
+    "longname": "source/api/user/methods/del/index.js~del",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/user/methods/del/index.js",
+    "importStyle": "{del}",
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "params": [
+      {
+        "name": "ctx",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 48,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/del/spec.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/del/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../../../app';\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = server(app.listen()));\n\n\ntest('successful delete: should return 200, with {}', async t => {\n  const user = {\n    name: 'bob',\n    email: 'user@delete.test',\n    businessName: 'user delete inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n  const test = await t.context\n                    .del('/api/user')\n                    .set(headers);\n\n\n  t.is(test.status, 200);\n  t.true(test.body instanceof Object);\n});\n\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 49,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/index.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "export * from './create';\nexport * from './read';\nexport * from './update';\nexport * from './del';\n"
+  },
+  {
+    "__docId__": 50,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/read/index.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/read/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { Business } from '../../../../models';\n\nexport function me(ctx) {\n  const { user } = ctx.state;\n  ctx.status = 200;\n  ctx.body = user;\n  return;\n}\n\nexport async function read(ctx) {\n  const { businessId } = ctx.state.user;\n\n  try {\n    const { employees } = await Business\n                           .findById(businessId , 'employees')\n                           .populate('employees')\n                           .exec();\n    ctx.body = employees;\n    ctx.status = 200;\n  } catch (error) {\n    ctx.body = error;\n    ctx.status = 500;\n  }\n}\n"
+  },
+  {
+    "__docId__": 51,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "me",
+    "memberof": "source/api/user/methods/read/index.js",
+    "longname": "source/api/user/methods/read/index.js~me",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/user/methods/read/index.js",
+    "importStyle": "{me}",
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "params": [
+      {
+        "name": "ctx",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 52,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "read",
+    "memberof": "source/api/user/methods/read/index.js",
+    "longname": "source/api/user/methods/read/index.js~read",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/user/methods/read/index.js",
+    "importStyle": "{read}",
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "params": [
+      {
+        "name": "ctx",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 53,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/read/spec.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/read/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../../../app';\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = server(app.listen()));\n\n\ntest('successful me: should return 200, with user', async t => {\n  const user = {\n    name: 'bob',\n    email: 'user@me.test',\n    businessName: 'user me inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n  const test = await t.context\n                     .get('/api/user/me')\n                     .set(headers);\n\n  t.is(test.status, 200);\n  t.is(test.body.name, user.name);\n  t.is(test.body.email, user.email);\n\n\n  await t.context\n        .del('/api/business')\n        .send({ token })\n        .set(headers);\n});\n\n\ntest('successful read: should return 200, with users', async t => {\n  const user = {\n    name: 'bob',\n    email: 'user@read.test',\n    businessName: 'user read inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n\n  const user2 = { name: 'bobby', email: 'user2@read.test', password: 'Password2' };\n  await t.context\n        .post('/api/user')\n        .set(headers)\n        .send(user2);\n\n\n  const test = await t.context\n                     .get('/api/user')\n                     .set(headers);\n\n  t.is(test.status, 200);\n  t.true(test.body instanceof Array);\n  t.is(test.body.length, 2);\n\n\n  await t.context\n        .del('/api/business')\n        .send({ token })\n        .set(headers);\n});\n\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 54,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/update/index.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/update/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { User } from '../../../../models';\n\n\nexport async function update(ctx) {\n  const { _id } = ctx.state.user;\n  const { body } = ctx.request;\n  try {\n    const updatedUser = await User.findByIdAndUpdate(_id, body, { new: true });\n    ctx.status = 200;\n    ctx.body = updatedUser;\n    return;\n  } catch (error) {\n    ctx.status = 500;\n    ctx.body = { error: \"invalid update\" };\n    return;\n  }\n}\n\n\nexport default update;\n"
+  },
+  {
+    "__docId__": 55,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "update",
+    "memberof": "source/api/user/methods/update/index.js",
+    "longname": "source/api/user/methods/update/index.js~update",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/api/user/methods/update/index.js",
+    "importStyle": "{update}",
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "params": [
+      {
+        "name": "ctx",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 56,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/api/user/methods/update/spec.js",
+    "memberof": null,
+    "longname": "source/api/user/methods/update/spec.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import server from 'supertest';\nimport mongoose from 'mongoose';\nimport test from 'ava';\n\nimport app from '../../../../app';\n\n\ntest.before(async () => {\n  mongoose.Promise = Promise;\n  await mongoose.connect('mongodb://localhost/seamless-test');\n});\n\n\ntest.beforeEach(async t => t.context = server(app.listen()));\n\n\ntest('successful update: should return 200, with updatedUser', async t => {\n  const user = {\n    name: 'bob',\n    email: 'user@update.test',\n    businessName: 'user update inc,',\n    address: '123 abc st',\n    password: 'Password1',\n  };\n  const setup = await t.context\n                      .post('/api/register')\n                      .send(user);\n\n\n  const { token } = setup.body;\n  const headers = { 'x-access-token': token };\n  const body = { name: 'bobby' };\n  const test = await t.context\n                    .put('/api/user')\n                    .set(headers)\n                    .send(body);\n\n  t.is(test.status, 200);\n  t.is(test.body.name, body.name);\n  t.is(test.body.email, user.email);\n\n\n  await t.context\n        .del('/api/business')\n        .set(headers);\n});\n\n\ntest.after(async () => {\n  await mongoose.connection.close();\n});\n"
+  },
+  {
+    "__docId__": 57,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/app.js",
+    "memberof": null,
+    "longname": "source/app.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import parser from 'koa-bodyparser';\nimport logger from 'koa-logger';\nimport Koa from 'koa';\n\nimport api from './api';\n\n/**\n * @type {Koa} app the pure koa instance\n */\nconst app = new Koa();\n\n\nif (process.env.NODE_ENV === 'development') { // enable logging\n  app\n  .use(logger())\n}\n\n\napp\n.use(parser())\n.use(api.routes())\n.use(api.allowedMethods());\n\n\nexport default app;\n"
+  },
+  {
+    "__docId__": 58,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/main.js",
+    "memberof": null,
+    "longname": "source/main.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import mongoose from 'mongoose';\nimport app from './app';\n\n\n/**\n * @type {Promise} mongoose.Promise using native promises.\n */\nmongoose.Promise = Promise;\n\n\n/**\n * @type {Number} port the application port.\n * @type {String} db the db address.\n * @type {String} name the db name.\n */\nconst port = process.argv[2] || 3000;\nconst db = process.argv[3] || 'localhost';\nconst name = process.argv[4] || 'test';\n\n\n/**\n * @type {Koa} server the koa application.\n */\nlet server;\n\n\n/**\n * start koa\n */\nfunction start() {\n  console.log(`api is connected to port: ${port}.`);\n  server = app.listen(port);\n}\n\n\n/**\n * gracefully stop koa\n */\nfunction stop() {\n  if (server) {\n    console.log('api is disconnected');\n    server.close();\n  }\n}\n\n\n/**\n * SIGINT runs stop\n */\nprocess.on('SIGINT', stop);\n\n\n/**\n * - connect to db\n * - start app.\n */\nmongoose.connection.on('error', console.error);\nmongoose.connection.once('open', start);\nmongoose.connect(`mongodb://${db}/${name}`);\n"
+  },
+  {
+    "__docId__": 59,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "port",
+    "memberof": "source/main.js",
+    "longname": "source/main.js~port",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/main.js",
+    "importStyle": null,
+    "description": "",
+    "lineNumber": 16,
+    "type": {
+      "nullable": null,
+      "types": [
+        "String"
+      ],
+      "spread": false,
+      "description": null
+    }
+  },
+  {
+    "__docId__": 60,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "db",
+    "memberof": "source/main.js",
+    "longname": "source/main.js~db",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/main.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 61,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "name",
+    "memberof": "source/main.js",
+    "longname": "source/main.js~name",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/main.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 18,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 62,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "start",
+    "memberof": "source/main.js",
+    "longname": "source/main.js~start",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/main.js",
+    "importStyle": null,
+    "description": "start koa",
+    "lineNumber": 30,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 63,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "stop",
+    "memberof": "source/main.js",
+    "longname": "source/main.js~stop",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/main.js",
+    "importStyle": null,
+    "description": "gracefully stop koa",
+    "lineNumber": 39,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 64,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/models/business.js",
+    "memberof": null,
+    "longname": "source/models/business.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import mongoose, { Schema } from 'mongoose';\n\n/**\n * the account model schema\n */\nconst schema = new Schema({\n  name: { type: String, required: true, unique: true },\n  address: { type: String, required: true },\n  employees: [{ type: Schema.Types.ObjectId, ref: 'User' }],\n  shipments: [{ type: Schema.Types.ObjectId, ref: 'Shipment' }],\n  industry: { type: String, required: false },\n});\n\n\n/**\n * the account model\n */\nexport const Business = mongoose.model('Business', schema);\n"
+  },
+  {
+    "__docId__": 65,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "schema",
+    "memberof": "source/models/business.js",
+    "longname": "source/models/business.js~schema",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/models/business.js",
+    "importStyle": null,
+    "description": "the account model schema",
+    "lineNumber": 6,
+    "type": {
+      "types": [
+        "mongoose~Schema"
+      ]
+    }
+  },
+  {
+    "__docId__": 66,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "Business",
+    "memberof": "source/models/business.js",
+    "longname": "source/models/business.js~Business",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/models/business.js",
+    "importStyle": "{Business}",
+    "description": "the account model",
+    "lineNumber": 18,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 67,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/models/index.js",
+    "memberof": null,
+    "longname": "source/models/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "export * from './business';\nexport * from './shipment'; \nexport * from './packet';\nexport * from './user';\n"
+  },
+  {
+    "__docId__": 68,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/models/packet.js",
+    "memberof": null,
+    "longname": "source/models/packet.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import mongoose, { Schema } from 'mongoose';\n\nconst schema = new Schema({\n  shipmentId: { type: Schema.Types.ObjectId, required: true },\n  timestamp: { type: String, required: true },\n});\n\nexport const Packet = mongoose.model('Packet', schema);\n\nexport default Packet;\n"
+  },
+  {
+    "__docId__": 69,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "schema",
+    "memberof": "source/models/packet.js",
+    "longname": "source/models/packet.js~schema",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/models/packet.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "type": {
+      "types": [
+        "mongoose~Schema"
+      ]
+    }
+  },
+  {
+    "__docId__": 70,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "Packet",
+    "memberof": "source/models/packet.js",
+    "longname": "source/models/packet.js~Packet",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/models/packet.js",
+    "importStyle": "{Packet}",
+    "description": null,
+    "lineNumber": 8,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 71,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/models/shipment.js",
+    "memberof": null,
+    "longname": "source/models/shipment.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import mongoose, { Schema } from 'mongoose';\n\nconst schema = new Schema({\n  businessId: { type: Schema.Types.ObjectId, ref: 'Business' },\n  createdAt: { type: Date, required: true, default: Date.now },\n  packets: [{ type: Schema.Types.ObjectId, ref: 'Packet' }],\n});\n\nexport const Shipment = mongoose.model('Shipment', schema);\n\nexport default Shipment;\n"
+  },
+  {
+    "__docId__": 72,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "schema",
+    "memberof": "source/models/shipment.js",
+    "longname": "source/models/shipment.js~schema",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/models/shipment.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 3,
+    "undocument": true,
+    "type": {
+      "types": [
+        "mongoose~Schema"
+      ]
+    }
+  },
+  {
+    "__docId__": 73,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "Shipment",
+    "memberof": "source/models/shipment.js",
+    "longname": "source/models/shipment.js~Shipment",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/models/shipment.js",
+    "importStyle": "{Shipment}",
+    "description": null,
+    "lineNumber": 9,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 74,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "source/models/user.js",
+    "memberof": null,
+    "longname": "source/models/user.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import mongoose, { Schema } from 'mongoose';\nimport { hash, compare } from 'bcrypt';\n\n/**\n * the account model schema\n */\nconst schema = new Schema({\n  name: { type: String, required: true },\n  email: { type: String, required: true, index: true, unique: true },\n  businessId: { type: Schema.Types.ObjectId, ref: 'Business' },\n  password: { type: String, required: true, select: false },\n});\n\n\n/**\n * on pre save: check if password is modified and if so, salt and hash it.\n * @param {Function} next to be called to signal end of the middleware.\n */\nschema.pre('save', function save(next) {\n  if (!this.isModified('password')) { // !new password\n    return next();\n  }\n\n  return hash(this.password, 10, (error, hashed) => { // 10 === saltFactor\n    if (error) {\n      return next(error);\n    }\n\n    this.password = hashed;\n    return next();\n  });\n});\n\n\n/**\n * authenticate before modify or reading.\n * @param {String} password the password to authenticate\n */\nschema.methods.authenticate = function authenticate(password) {\n  return new Promise(\n    resolve => compare(password, this.password, (error, response) => {\n      if (error) {\n        throw error;\n      }\n      if (response === true) {\n        resolve(true);\n      }\n      resolve(false);\n    })\n  );\n};\n\n\n/**\n * the account model\n */\nexport const User = mongoose.model('User', schema);\n"
+  },
+  {
+    "__docId__": 75,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "schema",
+    "memberof": "source/models/user.js",
+    "longname": "source/models/user.js~schema",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/models/user.js",
+    "importStyle": null,
+    "description": "the account model schema",
+    "lineNumber": 7,
+    "type": {
+      "types": [
+        "mongoose~Schema"
+      ]
+    }
+  },
+  {
+    "__docId__": 76,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "authenticate",
+    "memberof": "source/models/user.js",
+    "longname": "source/models/user.js~authenticate",
+    "access": null,
+    "export": false,
+    "importPath": "server/source/models/user.js",
+    "importStyle": null,
+    "description": "authenticate before modify or reading.",
+    "lineNumber": 39,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "String"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "password",
+        "description": "the password to authenticate"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 77,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "User",
+    "memberof": "source/models/user.js",
+    "longname": "source/models/user.js~User",
+    "access": null,
+    "export": true,
+    "importPath": "server/source/models/user.js",
+    "importStyle": "{User}",
+    "description": "the account model",
+    "lineNumber": 57,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 79,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 80,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 81,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 82,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 83,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 84,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 86,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 87,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 88,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 89,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 90,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 91,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 92,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 93,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 94,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 95,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 96,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 97,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 98,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 99,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 100,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 101,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 102,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 103,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 104,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 105,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 106,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 107,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 108,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 109,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 110,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 111,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 112,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 113,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 114,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 115,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 116,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 117,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 118,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 119,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 120,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 121,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 122,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 123,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 124,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 125,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 127,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 128,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 129,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 130,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 131,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 132,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 133,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 134,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  }
+]

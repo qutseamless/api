@@ -1,13 +1,14 @@
-import { run } from '../libs';
+const { run } = require('../libs');
 
-run('docker', [
-  'build',
-  '-t', 'qutseamless/api',
-  '-f', `${__dirname}/Dockerfile`, '.',
-])
-.then(() => run('docker', ['push', 'qutseamless/api']));
-
-// run('docker-compose', [
-//   '-f', `${__dirname}/docker-compose.yml`,
-//   'build',
-// ]);
+run(
+  'docker', [
+    'build',
+    '-t', 'qutseamless/api',
+    '-f', `${__dirname}/Dockerfile`, '.',
+  ]
+)
+.then(
+  () => run(
+    'docker', ['push', 'qutseamless/api']
+  )
+);
