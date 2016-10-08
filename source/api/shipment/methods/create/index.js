@@ -6,8 +6,15 @@ import { Business, Shipment } from '../../../../models';
  */
 export async function create(ctx) {
   const { businessId } = ctx.state.user;
+  const { deviceId } = ctx.request.body;
 
-  const shipment = new Shipment({ businessId });
+  if (!deviceId || isNaN(deviceId)) {
+    ctx.status = 400;
+    ctx.body = { error: 'invalid deviceId' };
+    return;
+  }
+
+  const shipment = new Shipment({ businessId, deviceId });
 
   try {
     const business = await Business.findById(businessId);
@@ -26,6 +33,7 @@ export async function create(ctx) {
     ctx.body = shipment;
     return;
   } catch (error) {
+    console.log(error)
     ctx.status = 500;
     ctx.body = { error: 'invalid shipment' };
     return;

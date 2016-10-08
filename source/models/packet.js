@@ -2,9 +2,12 @@ import mongoose, { Schema } from 'mongoose';
 
 const schema = new Schema({
   shipmentId: { type: Schema.Types.ObjectId, required: true },
-  timestamp: { type: String, required: true },
+  createdAt: { type: String, required: true },
+  location: {
+    lat: { type: Number, required: false },
+    long: { type: Number, required: false },
+  },
 });
 
-export const Packet = mongoose.model('Packet', schema);
 
-export default Packet;
+export default mongoose.model('Packet', schema);

@@ -1,9 +1,8 @@
 import router from 'koa-router';
+import verify from '../oauth/verify';
 import {
   create,
   read,
-  update,
-  del,
 } from './methods';
 
 
@@ -15,9 +14,7 @@ const packet = router();
 
 packet
 .post('/', create)
-.get('/', read)
-.put('/', update)
-.delete('/', del);
+.get('/', verify, read);
 
 
 /**

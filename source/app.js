@@ -11,9 +11,8 @@ import api from './api';
 const app = new Koa();
 
 
-if (process.env.NODE_ENV === 'development') { // enable logging
-  app
-  .use(logger())
+if (process.env.NODE_ENV !== 'production') {
+  app.use(logger())
 }
 
 const options = {

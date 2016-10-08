@@ -1,4 +1,11 @@
-export * from './business';
-export * from './shipment'; 
-export * from './packet';
-export * from './user';
+import Business from './business';
+import Shipment from './shipment';
+import Packet from './packet';
+import User from './user';
+
+export {
+  Business,
+  Shipment,
+  Packet,
+  User,
+};

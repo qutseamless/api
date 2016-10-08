@@ -1,4 +1,4 @@
-import { Packet } from '../../../../models';
+import { Packet, Shipment } from '../../../../models';
 
 /**
  * validates the incoming shipment packet, and saves it.
@@ -6,34 +6,37 @@ import { Packet } from '../../../../models';
  * @param {Object} ctx the current serving context.
  */
 export const create = async ctx => {
-  const { id, timestamp } = ctx.request.body;
+  const { deviceId, createdAt, location } = ctx.request.body;
 
-  if (!id) {
+  if (!deviceId || isNaN(deviceId)) {
     ctx.status = 400;
-    ctx.body = 'Bad Request: id was not provided';
+    ctx.body = { error: 'invalid deviceId' };
     return;
   }
 
-  if (isNaN(id)) {
+  if (!createdAt || createdAt < 0 || createdAt > Date.now()) {
     ctx.status = 400;
-    ctx.body = 'Bad Request: id was invalid';
+    ctx.body = { error: 'invalid createdAt' };
     return;
   }
 
-  if (!timestamp) {
-    ctx.status = 400;
-    ctx.body = 'Bad Request: timestamp was not provided';
-    return;
-  }
+  const packet = new Packet({ deviceId, createdAt, location });
 
-  if (isNaN(timestamp) || timestamp < 0 || timestamp > Date.now()) {
-    ctx.status = 400;
-    ctx.body = 'Bad Request: timestamp was invalid';
-    return;
-  }
-
+  let shipment;
   try {
-    await new Packet({ id, timestamp }).save();
+    shipment = await Shipment.findOne({ deviceId });
+    shipment.packets.push(packet._id)
+    await shipment.save();
+  } catch (error) {
+    console.log(error)
+    ctx.status = 400;
+    ctx.body = { error: 'invalid shipment' };
+    return;
+  }
+
+  packet.shipmentId = shipment._id;
+  try {
+    await packet.save();
     ctx.status = 200;
     ctx.body = 'Success: packet was recorded';
     return;

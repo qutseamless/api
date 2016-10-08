@@ -1,15 +1,25 @@
-import { Packet } from '../../../../models';
+import { Shipment } from '../../../../models';
 
-export const read = async ctx => {
+
+export async function read(ctx) {
+  const { businessId } = ctx.state.user;
+  const { shipmentId } = ctx.query;
+
   try {
-    ctx.status = 200;
-    ctx.body = await Packet.find();
-    return;
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = 'Server Error: Database did not retrieve the packet/s';
-    throw error;
-  }
-};
+    const shipment = await Shipment.findById(shipmentId)
+                                   .populate('packets')
+                                   .exec();
 
-export default read;
+    if (shipment.businessId != businessId) {
+      return;
+    }
+
+    const { packets } = shipment;
+    ctx.body = packets;
+    ctx.status = 200;
+  } catch (error) {
+    console.log(error)
+    ctx.body = error;
+    ctx.status = 500;
+  }
+}

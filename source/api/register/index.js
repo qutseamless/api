@@ -42,32 +42,28 @@ export async function register (ctx) {
   }
 
 
-  const user = new User({
-    name, email, password,
-  });
-  const business = new Business({
-    name: businessName, address,
-  });
-  if (industry) {
-    business.industry = industry;
-  }
-  user.businessId = business._id;
+  const business = new Business({ name: businessName, address });
+  const user = new User({ name, email, password });
+
+  if (industry) business.industry = industry;
   business.employees.push(user._id);
-
-
-  try {
-    await user.save();
-  } catch (error) {
-    console.log(error);
-    ctx.status = 500;
-    ctx.body = { error: 'invalid user' };
-    return;
-  }
+  business.owner = user._id;
   try {
     await business.save();
   } catch (error) {
     ctx.status = 500;
     ctx.body = { error: 'invalid business' };
+    return;
+  }
+
+  user.businessId = business._id;
+  user.positions.owner = true;
+  user.positions.admin = true;
+  try {
+    await user.save();
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: 'invalid user' };
     return;
   }
 
