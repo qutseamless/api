@@ -1,7 +1,7 @@
 /**
  * @module manages the task of building the app.
  */
-const { clean, dir, copy, run } = require('../libs');
+const { run } = require('../libs');
 
 
 /**
@@ -11,10 +11,9 @@ const directory = process.argv[2] || 'build';
 
 
 /**
- * performs tasks of: clean directory, copy static assets, rebuild modules.
+ * performs tasks of: rebuild modules.
  */
-clean(directory)
-.then(() => dir('build'))
-// .then(() => copy('source/assets', directory))
-.then(() => run('babel', ['source', '-q', '-d', directory]))
+run('babel', [
+  '-q', 'source', '-d', directory, '-i', '**/spec.js',
+])
 .catch(console.log);

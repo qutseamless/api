@@ -27,11 +27,14 @@ test('successful delete: should return 200, with {}', async t => {
                       .send(user);
 
   const { token } = setup.body;
-  const headers = { 'x-access-token': token };
 
+
+  const headers = { 'x-access-token': token };
+  const shipment = { deviceId: 123456 };
   const setupTwo = await t.context
                         .post('/api/shipment')
-                        .set(headers);
+                        .set(headers)
+                        .send(shipment);
 
   const { _id } = setupTwo.body;
   const queries = { _id };
@@ -46,7 +49,6 @@ test('successful delete: should return 200, with {}', async t => {
 
   await t.context
         .del('/api/business')
-        .send({ token })
         .set(headers);
 });
 

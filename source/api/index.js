@@ -22,12 +22,12 @@ endpoints
 
 .use('/business', business.routes())
 .use('/business', business.allowedMethods())
-.use('/shipments', shipment.routes())
-.use('/shipments', shipment.allowedMethods())
-.use('/packets', packet.routes())
-.use('/packets', packet.allowedMethods())
-.use('/users', user.routes())
-.use('/users', user.allowedMethods());
+.use('/shipment', shipment.routes())
+.use('/shipment', shipment.allowedMethods())
+.use('/packet', packet.routes())
+.use('/packet', packet.allowedMethods())
+.use('/user', user.routes())
+.use('/user', user.allowedMethods());
 
 
 export default endpoints;

@@ -4,17 +4,30 @@ import Packet from './packet';
 
 const schema = new Schema({
   businessId: { type: Schema.Types.ObjectId, ref: 'Business' },
-  deviceId: { type: Number, ref: 'Devices' },
+  deviceId: { type: Number, ref: 'Device' },
   createdAt: { type: Date, required: true, default: Date.now },
   packets: [{ type: Schema.Types.ObjectId, ref: 'Packet' }],
 });
 
 
-async function remove(error, shipment) {
+/**
+ * cascade deletion
+ */
+async function remove(next) {
+  const packets = Promise.all(
+    this.packets
+        .toObject()
+        .map(
+          id => Packet.findByIdAndRemove(id)
+                      .then(p => p.remove())
+        )
+  )
+
   try {
-    await Promise.all(shipment.packets.map(id => Packet.findByIdRemove(id)));
-  } catch (error) {
-    throw error;
+    await packets;
+    return next();
+  } catch (err) {
+    throw err;
   }
 }
 

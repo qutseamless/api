@@ -36,6 +36,11 @@ test('successful delete: should return 200, with {}', async t => {
 
   t.is(test.status, 200);
   t.true(test.body instanceof Object);
+
+
+  await t.context
+      .del('/api/business')
+      .set(headers);
 });
 
 

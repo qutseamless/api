@@ -27,10 +27,14 @@ test('successful read one: should return 200, with shipment', async t => {
                       .send(user);
 
   const { token } = setup.body;
+
+  
+  const shipment = { deviceId: 123456 };
   const headers = { 'x-access-token': token };
   const setupTwo = await t.context
                           .post('/api/shipment')
-                          .set(headers);
+                          .set(headers)
+                          .send(shipment);
 
 
   const { _id } = setupTwo.body;
@@ -64,10 +68,11 @@ test('successful read all: should return 200, with shipments', async t => {
 
   const { token } = setup.body;
   const headers = { 'x-access-token': token };
-
+  const shipment = { deviceId: 123456 };
   await t.context
          .post('/api/shipment')
-         .set(headers);
+         .set(headers)
+         .send(shipment);
 
 
   const test = await t.context

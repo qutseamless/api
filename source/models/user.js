@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { hash, compare } from 'bcrypt';
-
+import Business from './business';
 
 /**
  * the account model schema
@@ -19,22 +19,6 @@ const schema = new Schema({
 
 
 /**
- * hash password if it has changed
- * @param {Function} next signals end of the middleware.
- */
-function save(next) {
-  if (!this.isModified('password'))  return next();
-
-  return hash(this.password, 10, (error, hashed) => { // 10 === saltFactor
-    if (error) return next(error);
-
-    this.password = hashed;
-    return next();
-  });
-}
-
-
-/**
  * authenticate before modify or reading.
  * @param {String} password the password to authenticate
  */
@@ -49,6 +33,22 @@ function authenticate(password) {
       resolve(false);
     })
   );
+}
+
+
+/**
+ * hash password if it has changed
+ * @param {Function} next signals end of the middleware.
+ */
+function save(next) {
+  if (!this.isModified('password'))  return next();
+
+  return hash(this.password, 10, (error, hashed) => { // 10 === saltFactor
+    if (error) return next(error);
+
+    this.password = hashed;
+    return next();
+  });
 }
 
 

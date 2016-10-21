@@ -2,5 +2,10 @@
   "presets": [
     "node6"
   ],
-  "plugins": ["transform-async-to-generator"]
+  "plugins": ["transform-async-to-generator"],
+  "env": {
+    "development": {
+      "sourceMaps": "inline"
+    }
+  }
 }

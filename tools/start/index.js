@@ -11,9 +11,12 @@ const { run } = require('../libs');
  */
 run('npm', ['run', 'build'])
 .then(() => {
-  run('nodemon', ['build/main.js']);
   run('watch', [
     'npm run build',
     'source',
+  ]);
+  run('nodemon', [
+    '--watch', 'build',
+    'build/main.js',
   ]);
 });

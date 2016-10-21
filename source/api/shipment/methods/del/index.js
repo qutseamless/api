@@ -1,4 +1,4 @@
-import { Business, Shipment, Packet } from '../../../../models';
+import { Business, Shipment } from '../../../../models';
 
 /**
  * deletes a shipment for the business of the user
@@ -9,11 +9,7 @@ export async function del(ctx){
     const { _id } = ctx.query;
 
   try {
-    const shipment = await Shipment.findById(_id);
-    await Promise.all(
-      shipment.packets.map(packetId => Packet.findByIdAndRemove(packetId))
-    );
-    await shipment.remove();
+    await Shipment.findByIdAndRemove(_id);
   } catch (error) {
     ctx.status = 400;
     ctx.body = error;

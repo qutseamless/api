@@ -3,23 +3,19 @@ import { Business, User } from '../../../../models';
 
 export async function del(ctx) {
   const { _id, businessId } = ctx.state.user;
-
+  
   try {
-    const business = await Business.findById(businessId);
-    business.employees.pull(_id);
-    if (business.employees.length > 0) {
-      await business.save();
-    } else {
-      await business.remove();
-    }
+    await User.findByIdAndRemove(_id);
   } catch (error) {
     ctx.error = 500;
     ctx.body = error;
     return;
   }
-  
+
   try {
-    await User.findByIdAndRemove(_id);
+    const business = await Business.findById(businessId);
+    business.employees.pull(_id);
+    await business.save();
     ctx.status = 200;
     ctx.body = {};
     return;

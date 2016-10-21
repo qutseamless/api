@@ -1,7 +1,7 @@
 /**
  * @module runs tests.
  */
-const { run, clean } = require('../libs');
+const { run } = require('../libs');
 
 
 /**
@@ -12,5 +12,5 @@ const { run, clean } = require('../libs');
 /**
  *  run ava with nyc and watch.
  */
-run('watch', ['npm run test:once', 'source'])
+run('ava', ['source/**/spec.js', '-w'])
 .catch(console.log);

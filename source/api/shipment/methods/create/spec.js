@@ -26,19 +26,21 @@ test('successful create: should return 200, with shipment', async t => {
                       .post('/api/register')
                       .send(user);
 
-
   const { token } = setup.body;
+  
+  
+  const shipment = { deviceId: 123456 };
   const headers = { 'x-access-token': token };
   const test = await t.context
                     .post('/api/shipment')
-                    .set(headers);
+                    .set(headers)
+                    .send(shipment);
 
   t.is(test.status, 201);
 
 
   await t.context
         .del('/api/business')
-        .send({ token })
         .set(headers);
 });
 

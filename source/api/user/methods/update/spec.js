@@ -26,7 +26,6 @@ test('successful update: should return 200, with updatedUser', async t => {
                       .post('/api/register')
                       .send(user);
 
-
   const { token } = setup.body;
   const headers = { 'x-access-token': token };
   const body = { name: 'bobby' };

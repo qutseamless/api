@@ -40,7 +40,6 @@ test('successful me: should return 200, with user', async t => {
 
   await t.context
         .del('/api/business')
-        .send({ token })
         .set(headers);
 });
 
@@ -60,25 +59,16 @@ test('successful read: should return 200, with users', async t => {
   const { token } = setup.body;
   const headers = { 'x-access-token': token };
 
-  const user2 = { name: 'bobby', email: 'user2@read.test', password: 'Password2' };
-  await t.context
-        .post('/api/user')
-        .set(headers)
-        .send(user2);
-
-
   const test = await t.context
                      .get('/api/user')
                      .set(headers);
 
   t.is(test.status, 200);
   t.true(test.body instanceof Array);
-  t.is(test.body.length, 2);
 
 
   await t.context
         .del('/api/business')
-        .send({ token })
         .set(headers);
 });
 

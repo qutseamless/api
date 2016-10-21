@@ -42,7 +42,6 @@ test('successful create: should return 200, with user', async t => {
 
   await t.context
         .del('/api/business')
-        .send({ token })
         .set(headers);
 });
 
