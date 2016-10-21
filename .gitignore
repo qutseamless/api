@@ -15,7 +15,7 @@
 
 
 # Ignore logs
-/.npm-debug.log
+/npm-debug.log
 
 
 # Ignore personal config files
