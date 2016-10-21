@@ -10,7 +10,7 @@ const schema = new Schema({
   email: { type: String, required: true, index: true, unique: true },
   businessId: { type: Schema.Types.ObjectId, ref: 'Business' },
   password: { type: String, required: true, select: false },
-  position: {
+  role: {
     owner: { type: Boolean, required: true, default: false },
     admin: { type: Boolean, required: true, default: false },
     partner: { type: Boolean, required: true, default: true },

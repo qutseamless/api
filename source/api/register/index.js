@@ -57,8 +57,8 @@ export async function register (ctx) {
   }
 
   user.businessId = business._id;
-  user.positions.owner = true;
-  user.positions.admin = true;
+  user.role.owner = true;
+  user.role.admin = true;
   try {
     await user.save();
   } catch (error) {
