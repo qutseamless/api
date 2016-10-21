@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 
 const schema = new Schema({
   shipmentId: { type: Schema.Types.ObjectId, required: true },
-  createdAt: { type: String, required: true },
+  createdAt: { type: String, required: true }, // currently date-time string
   location: {
     lat: { type: Number, required: false },
     long: { type: Number, required: false },
