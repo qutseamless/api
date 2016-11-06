@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 
 
 const schema = new Schema({
-  id: { type: String, required: true, index: true },
+  deviceId: { type: String, required: true, index: true },
   createdAt: { type: String, required: false },
   humidity: { type: String, required: false },
   course: { type: String, required: false },
