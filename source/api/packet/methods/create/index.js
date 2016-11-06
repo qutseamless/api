@@ -7,9 +7,10 @@ import { Packet, Shipment } from '../../../../models';
 export const create = async ctx => {
   const { Body } = ctx.request.body;
   const [
-    deviceId, lat, lng,,,,,, humidity, temp,
+    deviceId, lat, lng,,,, humidity, temp,
   ] = Body.split(',');
 
+  console.log({ deviceId, lat, lng, humidity, temp });
 
   if (!deviceId || isNaN(deviceId)) {
     ctx.status = 400;
