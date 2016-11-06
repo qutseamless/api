@@ -20,7 +20,7 @@ const options = {
 };
 
 if (process.env.NODE_ENV === 'production') {
-  options.origin = 'http://http://52.63.159.167';
+  options.origin = 'http://52.63.159.167';
 }
 
 
