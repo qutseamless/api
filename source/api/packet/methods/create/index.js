@@ -28,7 +28,7 @@ export const create = async ctx => {
   // }
   
   const packet = new Packet({
-    deviceId, lat, lng, humidity, temp
+    deviceId, lat: parseFloat(lat), lng: parseFloat(lng), humidity, temp
   });
 
 
