@@ -22,8 +22,11 @@ export const create = async ctx => {
     return;
   }
 
-
-  const createdAt = parseDate(date, time);
+  let createdAt;
+  if (date && time) {
+    createdAt = parseDate(date, time);
+  }
+  
   const packet = new Packet({
     deviceId, createdAt, lat, lng, alt, speed, course, humidity, temp,
   });
