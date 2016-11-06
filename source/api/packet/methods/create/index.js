@@ -2,25 +2,32 @@ import { Packet, Shipment } from '../../../../models';
 
 /**
  * validates the incoming shipment packet, and saves it.
- *
  * @param {Object} ctx the current serving context.
  */
 export const create = async ctx => {
-  const { deviceId, createdAt, location } = ctx.request.body;
+  const { Body } = ctx.request.body;
+  const [
+    deviceId, lat, lng, alt, speed, course, date, time, humidity, temp,
+  ] = Body.split(',');
+
 
   if (!deviceId || isNaN(deviceId)) {
     ctx.status = 400;
     ctx.body = { error: 'invalid deviceId' };
     return;
   }
-
-  if (!createdAt || createdAt < 0 || createdAt > Date.now()) {
+  if (!date || !time) {
     ctx.status = 400;
-    ctx.body = { error: 'invalid createdAt' };
+    ctx.body = { error: 'invalid date or time' };
     return;
   }
 
-  const packet = new Packet({ deviceId, createdAt, location });
+
+  const createdAt = parseDate(date, time);
+  const packet = new Packet({
+    deviceId, createdAt, lat, lng, alt, speed, course, humidity, temp,
+  });
+
 
   let shipment;
   try {
@@ -38,7 +45,7 @@ export const create = async ctx => {
   try {
     await packet.save();
     ctx.status = 200;
-    ctx.body = 'Success: packet was recorded';
+    ctx.body = '<?xml version="1.0" encoding="UTF-8" ?><Response></Response>';
     return;
   } catch (error) {
     ctx.status = 500;
@@ -46,5 +53,25 @@ export const create = async ctx => {
     throw error;
   }
 };
+
+
+/**
+ * returns the current time as a date time string
+ */
+function parseDate(date, time) {
+  const [d1, d2, mo1, mo2, y1, y2] = date;
+  const [h1, h2, mi1, mi2, s1, s2] = time;
+
+  const day = d1 + d2;
+  const month = mo1 + mo2;
+  const year = y1 + y2;
+
+  const hours = h1 + h2;
+  const minutes = mi1 + mi2;
+  const seconds = s1 + s2;
+
+  return new Date(year, month, day, hours, minutes, seconds);
+}
+
 
 export default create;
