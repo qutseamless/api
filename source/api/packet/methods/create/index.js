@@ -7,7 +7,7 @@ import { Packet, Shipment } from '../../../../models';
 export const create = async ctx => {
   const { Body } = ctx.request.body;
   const [
-    deviceId, lat, lng, alt, speed, course, date, time, humidity, temp,
+    deviceId, lat, lng,,,,,, humidity, temp,
   ] = Body.split(',');
 
 
@@ -16,19 +16,19 @@ export const create = async ctx => {
     ctx.body = { error: 'invalid deviceId' };
     return;
   }
-  if (!date || !time) {
-    ctx.status = 400;
-    ctx.body = { error: 'invalid date or time' };
-    return;
-  }
-
-  let createdAt;
-  if (date && time) {
-    createdAt = parseDate(date, time);
-  }
+  // if (!date || !time) {
+  //   ctx.status = 400;
+  //   ctx.body = { error: 'invalid date or time' };
+  //   return;
+  // }
+// 
+  // let createdAt;
+  // if (date && time) {
+  //   createdAt = parseDate(date, time);
+  // }
   
   const packet = new Packet({
-    deviceId, createdAt, lat, lng, alt, speed, course, humidity, temp,
+    deviceId, lat, lng, humidity, temp
   });
 
 
