@@ -1,25 +1,17 @@
-[![Build Status](https://travis-ci.org/qutseamless/api.svg?branch=master)](https://travis-ci.org/qutseamless/api)
-
 # Seamless Server
 this is the server application for Seamless.
-
-
-## Features
-  *TODO*
-
 
 ## Getting Started
 this section describes common scripts that can be used.
 
   - continuously build and serve: `npm start`.
   - continuously test: `npm test`.
-  - continuously document: `npm run docs`.
+  - continuously document: `npm run doc`.
   - build app: `npm run build`.
-  - test once: `npm run mocha`.
-  - create docs: `npm run document`.
+  - test once: `npm run test:once`.
+  - create docs: `npm run doc:once`.
   - deploy app: `npm run deploy`.
   - update dependancies: `npm i`.
-
 
 ## Source Structure
 this section describes the structure we will be using.
@@ -35,9 +27,8 @@ this section describes the structure we will be using.
   - any business heavy logic should be lifted from the endpoint
     and refactored in libs as to keep code clean.
 
-
 ## Testing
-testing will be conducted using mocha and chai. specs will be placed in the
+testing will be conducted using avajs. specs will be placed in the
 same directory as the code they are testing and will be noted as '/spec.js/'.
 
 

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../../">
+  <title data-ice="title">source/api/register/spec.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-endpoints">endpoints</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/business</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-business">business</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/business/methods/del</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-del">del</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/oauth/sign</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sign">sign</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/oauth/verify</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-verify">verify</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/packet</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-packet">packet</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/packet/methods/create</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-create">create</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/packet/methods/read</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-read">read</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/register</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-register">register</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/shipment</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-shipment">shipment</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/shipment/methods/create</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/shipment/methods/del</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-del">del</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/shipment/methods/read</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-read">read</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/shipment/methods/update</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-update">update</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/user</div><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-user">user</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/user/methods/create</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-create">create</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/user/methods/del</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-del">del</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/user/methods/read</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-me">me</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-read">read</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">api/user/methods/update</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-update">update</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">source/api/register/spec.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import server from &apos;supertest&apos;;
+import mongoose from &apos;mongoose&apos;;
+import test from &apos;ava&apos;;
+
+import app from &apos;../../app&apos;;
+
+
+/**
+ * @type {SuperTest} ctx of the tests. (a server wrapped with supertest)
+ */
+const ctx = server(app.listen());
+
+
+test.before(async () =&gt; {
+  mongoose.Promise = Promise;
+  await mongoose.connect(&apos;mongodb://localhost/seamless-test&apos;);
+});
+
+
+test.beforeEach(async t =&gt; t.context = ctx)
+
+
+test(&apos;no name: should return 400, error: &quot;invalid name&quot;&apos;, async t =&gt; {
+  const res = await t.context
+                    .post(&apos;/api/register&apos;);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid name&apos;);
+});
+
+
+test(&apos;name.length &lt; 3: should return 400, error: &quot;invalid name&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;ab&apos; };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid name&apos;);
+});
+
+
+test(&apos;typeof name !== &quot;string&quot;: should return 400, error: &quot;invalid name&quot;&apos;, async t =&gt; {
+  const body = { name: {} };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid name&apos;);
+});
+
+
+test(&apos;no email: should return 400, error: &quot;invalid email&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos; };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid email&apos;);
+});
+
+
+test.todo(&apos;invalid email expression: should return 400, error: &quot;invalid email&quot;&apos;);
+
+
+test(&apos;typeof email !== &quot;string&quot;: should return 400, error: &quot;invalid email&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos;, email: {} };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid email&apos;);
+});
+
+
+test(&apos;no businessName: should return 400, error: &quot;invalid businessName&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos;, email: &apos;user@register.test&apos; };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid businessName&apos;);
+});
+
+
+test(&apos;businessName.length &lt; 3: should return 400, error: &quot;invalid businessName&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos;, email: &apos;user@register.test&apos;, businessName: &apos;ab&apos; };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid businessName&apos;);
+});
+
+
+test(&apos;typeof businessName !== &quot;string&quot;: should return 400, error: &quot;invalid businessName&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos;, email: &apos;user@register.test&apos;, businessName: {} };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid businessName&apos;);
+});
+
+
+test(&apos;no address: should return 400, error: &quot;invalid address&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos;, email: &apos;user@register.test&apos;, businessName: &apos;register inc&apos; };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid address&apos;);
+});
+
+
+test(&apos;address.length &lt; 3: should return 400, error: &quot;invalid address&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos;, email: &apos;user@register.test&apos;, businessName: &apos;register inc&apos;, address: &apos;ab&apos; };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid address&apos;);
+});
+
+
+test(&apos;typeof address !== &quot;string&quot;: should return 400, error: &quot;invalid address&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos;, email: &apos;user@register.test&apos;, businessName: &apos;register inc&apos;, address: {} };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid address&apos;);
+});
+
+
+test(&apos;no password: should return 400, error: &quot;invalid password&quot;&apos;, async t =&gt; {
+  const body = { name: &apos;bob&apos;, email: &apos;user@register.test&apos;, businessName: &apos;register inc&apos;, address: &apos;123 abc st&apos; };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid password&apos;);
+});
+
+
+test.todo(&apos;invalid password expression: should return 400, error: &quot;invalid password&quot;&apos;);
+
+
+test(&apos;typeof password !== &quot;string&quot;: should return 400, error: &quot;invalid password&quot;&apos;, async t =&gt; {
+  const body = {
+    name: &apos;bob&apos;,
+    email: &apos;user@register.test&apos;,
+    businessName: &apos;register inc&apos;,
+    address: &apos;123 abc st&apos;,
+    password: {},
+  };
+  const res = await t.context
+                    .post(&apos;/api/register&apos;)
+                    .send(body);
+
+  t.is(res.status, 400);
+  t.is(res.body.error, &apos;invalid password&apos;);
+});
+
+test(&apos;successful register: should return 200, with token&apos;, async t =&gt; {
+  const user = {
+    name: &apos;bob&apos;,
+    email: &apos;user@register.test&apos;,
+    businessName: &apos;register inc&apos;,
+    address: &apos;123 abc st&apos;,
+    password: &apos;Password1&apos;,
+  };
+  const test = await t.context
+                      .post(&apos;/api/register&apos;)
+                      .send(user);
+
+  const { status, body: { token, expiresIn } } = test;
+
+  t.is(status, 201);
+  t.is(typeof token, &apos;string&apos;);
+  t.is(expiresIn, 86400);
+
+
+  await t.context
+        .del(&apos;/api/business&apos;)
+        .send({ token });
+});
+
+test.after(async () =&gt; {
+  await mongoose.connection.close();
+});
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
